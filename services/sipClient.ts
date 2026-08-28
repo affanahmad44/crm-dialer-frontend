@@ -7,11 +7,16 @@ import {
 } from "sip.js";
 
 const SIP_WS_URL =
-  "wss://intelligent-surplus-thats-mambo.trycloudflare.com";
+  process.env.NEXT_PUBLIC_SIP_WSS || "";
 
-const SIP_USERNAME = "1000";
-const SIP_PASSWORD = "1234";
-const SIP_DOMAIN = "34.0.227.220";
+const SIP_USERNAME =
+  process.env.NEXT_PUBLIC_SIP_USERNAME || "";
+
+const SIP_PASSWORD =
+  process.env.NEXT_PUBLIC_SIP_PASSWORD || "";
+
+const SIP_DOMAIN =
+  process.env.NEXT_PUBLIC_SIP_DOMAIN || "";
 
 let userAgent: UserAgent | null = null;
 let registerer: Registerer | null = null;
@@ -19,10 +24,40 @@ let registerer: Registerer | null = null;
 export const startSip = async (
   onIncomingCall?: (session: Invitation) => void
 ) => {
+  // Validate environment variables
+  if (!SIP_WS_URL) {
+    throw new Error(
+      "NEXT_PUBLIC_SIP_WSS is not configured"
+    );
+  }
+
+  if (!SIP_USERNAME) {
+    throw new Error(
+      "NEXT_PUBLIC_SIP_USERNAME is not configured"
+    );
+  }
+
+  if (!SIP_PASSWORD) {
+    throw new Error(
+      "NEXT_PUBLIC_SIP_PASSWORD is not configured"
+    );
+  }
+
+  if (!SIP_DOMAIN) {
+    throw new Error(
+      "NEXT_PUBLIC_SIP_DOMAIN is not configured"
+    );
+  }
+
   // Already connected
   if (userAgent) {
     return userAgent;
   }
+
+  console.log("Starting SIP client...");
+  console.log("SIP WebSocket:", SIP_WS_URL);
+  console.log("SIP Domain:", SIP_DOMAIN);
+  console.log("SIP Username:", SIP_USERNAME);
 
   const uri = UserAgent.makeURI(
     `sip:${SIP_USERNAME}@${SIP_DOMAIN}`
@@ -62,7 +97,7 @@ export const startSip = async (
 
   console.log("SIP UserAgent started");
 
-  // Register extension 1000
+  // Register extension
   registerer = new Registerer(userAgent);
 
   await registerer.register();
