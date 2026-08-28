@@ -7,7 +7,7 @@ import {
 } from "sip.js";
 
 const SIP_WS_URL =
-  "wss://cdt-effectiveness-democrats-nottingham.trycloudflare.com";
+  "wss://intelligent-surplus-thats-mambo.trycloudflare.com";
 
 const SIP_USERNAME = "1000";
 const SIP_PASSWORD = "1234";
