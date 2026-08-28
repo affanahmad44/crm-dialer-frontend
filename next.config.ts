@@ -1,7 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async rewrites() {
+    return [
+      {
+        source: "/dialer-api/:path*",
+        destination: "http://34.0.227.220:3001/:path*",
+      },
+    ];
+  },
 };
 
 export default nextConfig;
