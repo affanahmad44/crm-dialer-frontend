@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { toast } from "react-hot-toast";
 
@@ -22,21 +22,110 @@ import {
   hangupCall,
 } from "@/services/callApi";
 
+import {
+  startSip,
+  stopSip,
+} from "@/services/sipClient";
+
 import { useCall } from "@/context/CallContext";
 
 export default function Home() {
 
-  // Connect to Socket.IO
+  // -------------------------
+  // SOCKET.IO
+  // -------------------------
+
   useSocket();
+
+  // -------------------------
+  // STATE
+  // -------------------------
 
   const [number, setNumber] =
     useState("");
+
+  const [sipReady, setSipReady] =
+    useState(false);
 
   const {
     currentCall,
     callState,
     setCallState,
   } = useCall();
+
+  // -------------------------
+  // START BROWSER SIP PHONE
+  // -------------------------
+
+  useEffect(() => {
+
+    let mounted = true;
+
+    const initializeSip = async () => {
+
+      try {
+
+        console.log(
+          "Starting browser SIP client..."
+        );
+
+        await startSip(
+          (incomingCall) => {
+
+            console.log(
+              "Incoming SIP call:",
+              incomingCall
+            );
+
+            toast.success(
+              "Incoming call"
+            );
+          }
+        );
+
+        if (mounted) {
+
+          setSipReady(true);
+
+          console.log(
+            "Browser SIP client ready"
+          );
+        }
+
+      } catch (error) {
+
+        console.error(
+          "SIP initialization failed:",
+          error
+        );
+
+        if (mounted) {
+
+          setSipReady(false);
+
+          toast.error(
+            "Unable to connect phone"
+          );
+        }
+      }
+    };
+
+    initializeSip();
+
+    return () => {
+
+      mounted = false;
+
+      stopSip().catch(
+        console.error
+      );
+    };
+
+  }, []);
+
+  // -------------------------
+  // CALL TIMER
+  // -------------------------
 
   const isConnected =
     callState === "connected";
@@ -62,9 +151,25 @@ export default function Home() {
       return;
     }
 
+    if (!sipReady) {
+
+      toast.error(
+        "Phone is not connected"
+      );
+
+      return;
+    }
+
     try {
 
-      setCallState("calling");
+      setCallState(
+        "calling"
+      );
+
+      console.log(
+        "Starting call:",
+        number
+      );
 
       const response =
         await makeCall({
@@ -121,6 +226,10 @@ export default function Home() {
           currentCall.uuid
         );
 
+        setCallState(
+          "completed"
+        );
+
         toast.success(
           "Call ended"
         );
@@ -154,6 +263,10 @@ export default function Home() {
 
     };
 
+  // -------------------------
+  // UI
+  // -------------------------
+
   return (
 
     <main className="flex h-screen">
@@ -184,21 +297,47 @@ export default function Home() {
             />
 
             <CallControls
+
               onCall={
                 handleCall
               }
+
               onHangup={
                 handleHangup
               }
+
               disabled={
-                callState !== "idle" &&
-                callState !== "completed" &&
-                callState !== "failed"
+                !sipReady ||
+                (
+                  callState !== "idle" &&
+                  callState !== "completed" &&
+                  callState !== "failed"
+                )
               }
+
               hangupDisabled={
                 !currentCall
               }
+
             />
+
+            <div className="text-center text-sm">
+
+              {sipReady ? (
+
+                <span className="text-green-600">
+                  ● Phone connected
+                </span>
+
+              ) : (
+
+                <span className="text-red-600">
+                  ● Phone disconnected
+                </span>
+
+              )}
+
+            </div>
 
           </div>
 
