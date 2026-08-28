@@ -1,18 +1,5 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  async rewrites() {
-    return [
-      {
-        source: "/dialer-api",
-        destination: "http://34.0.227.220:3001/",
-      },
-      {
-        source: "/dialer-api/:path*",
-        destination: "http://34.0.227.220:3001/:path*",
-      },
-    ];
-  },
-};
+const nextConfig: NextConfig = {};
 
 export default nextConfig;
