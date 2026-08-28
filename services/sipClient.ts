@@ -6,11 +6,12 @@ import {
   Invitation,
 } from "sip.js";
 
-const FS_IP = "34.0.227.220";
+const SIP_WS_URL =
+  "wss://cdt-effectiveness-democrats-nottingham.trycloudflare.com";
 
 const SIP_USERNAME = "1000";
 const SIP_PASSWORD = "1234";
-const SIP_DOMAIN = FS_IP;
+const SIP_DOMAIN = "34.0.227.220";
 
 let userAgent: UserAgent | null = null;
 let registerer: Registerer | null = null;
@@ -39,7 +40,7 @@ export const startSip = async (
     authorizationPassword: SIP_PASSWORD,
 
     transportOptions: {
-      server: `wss://${FS_IP}:7443`,
+      server: SIP_WS_URL,
     },
 
     delegate: {
