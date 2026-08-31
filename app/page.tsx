@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import { toast } from "react-hot-toast";
 
@@ -25,11 +25,15 @@ import {
 import {
   startSip,
   stopSip,
+  setRemoteAudioElement,
 } from "@/services/sipClient";
 
 import { useCall } from "@/context/CallContext";
 
 export default function Home() {
+
+  const remoteAudioRef =
+  useRef<HTMLAudioElement | null>(null);
 
   // -------------------------
   // SOCKET.IO
@@ -267,78 +271,52 @@ export default function Home() {
   // UI
   // -------------------------
 
-  return (
+  useEffect(() => {
+    setRemoteAudioElement(remoteAudioRef.current);
 
+    return () => {
+      setRemoteAudioElement(null);
+    };
+  }, []);
+
+  return (
     <main className="flex h-screen">
+      <audio ref={remoteAudioRef} autoPlay playsInline />
 
       <Sidebar />
 
       <div className="flex flex-1 flex-col">
-
         <Header />
 
         <div className="grid flex-1 grid-cols-3 gap-8 p-8">
-
           {/* ===================== */}
           {/* DIAL PAD */}
           {/* ===================== */}
 
           <div className="space-y-6">
+            <NumberInput value={number} onChange={setNumber} />
 
-            <NumberInput
-              value={number}
-              onChange={setNumber}
-            />
-
-            <DialPad
-              onDigitPress={
-                handleDigitPress
-              }
-            />
+            <DialPad onDigitPress={handleDigitPress} />
 
             <CallControls
-
-              onCall={
-                handleCall
-              }
-
-              onHangup={
-                handleHangup
-              }
-
+              onCall={handleCall}
+              onHangup={handleHangup}
               disabled={
                 !sipReady ||
-                (
-                  callState !== "idle" &&
+                (callState !== "idle" &&
                   callState !== "completed" &&
-                  callState !== "failed"
-                )
+                  callState !== "failed")
               }
-
-              hangupDisabled={
-                !currentCall
-              }
-
+              hangupDisabled={!currentCall}
             />
 
             <div className="text-center text-sm">
-
               {sipReady ? (
-
-                <span className="text-green-600">
-                  ● Phone connected
-                </span>
-
+                <span className="text-green-600">● Phone connected</span>
               ) : (
-
-                <span className="text-red-600">
-                  ● Phone disconnected
-                </span>
-
+                <span className="text-red-600">● Phone disconnected</span>
               )}
-
             </div>
-
           </div>
 
           {/* ===================== */}
@@ -346,36 +324,18 @@ export default function Home() {
           {/* ===================== */}
 
           <div className="space-y-6">
+            <CallStatus status={callState} />
 
-            <CallStatus
-              status={
-                callState
-              }
-            />
-
-            <CallTimer
-              seconds={
-                seconds
-              }
-            />
-
+            <CallTimer seconds={seconds} />
           </div>
 
           {/* ===================== */}
           {/* CURRENT CALL */}
           {/* ===================== */}
 
-          <CurrentCall
-            call={
-              currentCall
-            }
-          />
-
+          <CurrentCall call={currentCall} />
         </div>
-
       </div>
-
     </main>
-
   );
 }
