@@ -7,6 +7,7 @@ import {
   Inviter,
   Session,
   SessionState,
+  Web,
 } from "sip.js";
 
 const SIP_WS_URL = process.env.NEXT_PUBLIC_SIP_WSS || "";
@@ -32,14 +33,18 @@ export const setRemoteAudioElement = (element: HTMLAudioElement | null) => {
 const attachSessionAudio = (session: Session) => {
   console.log("Attaching SIP session audio...");
 
-  const sdh = session.sessionDescriptionHandler;
+const sdh =
+  session.sessionDescriptionHandler as
+    | Web.SessionDescriptionHandler
+    | undefined;
 
-  if (!sdh) {
-    console.warn("SessionDescriptionHandler not available yet");
-    return;
-  }
+if (!sdh) {
+  console.warn("SessionDescriptionHandler not available yet");
+  return;
+}
 
-  const peerConnection = sdh.peerConnection;
+const peerConnection =
+  sdh.peerConnection;
 
   if (!peerConnection) {
     console.warn("RTCPeerConnection not available");
@@ -48,7 +53,9 @@ const attachSessionAudio = (session: Session) => {
 
   console.log("WebRTC PeerConnection found");
 
-  peerConnection.ontrack = (event) => {
+  peerConnection.ontrack = (
+  event: RTCTrackEvent
+) => {
     console.log("Remote audio track received:", event.track.kind);
 
     if (event.track.kind !== "audio") {
